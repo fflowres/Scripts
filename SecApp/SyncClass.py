@@ -97,8 +97,8 @@ class Sync:
 				return str(dict(ftphost=Host,ftpuser=User))
 	
 			if (self.loc == 'googledrive'):
-				Email=self.DBConfig.mapget('cloudinfo')['gmail']
-				return str(dict(gmail=Email))
+
+				return True
 	
 			if (self.loc == 'icloud'):
 				Email=self.DBConfig.mapget('cloudinfo')['appleid']
@@ -141,12 +141,8 @@ class Sync:
 			status = CloudHandler().uploadftp(self.packname, host, user, password)
 
 		if (self.uploadconfig['location'] == 'googledrive'):
-			email = self.uploadconfig['gmail']
-			password = self.uploadconfig['password']
-
 			self.DBConfig.putmap('cloudinfo','location','googledrive')
-			self.DBConfig.putmap('cloudinfo','gmail', email)
-			status = uploadgoogledrive(self.packname, email, password)
+			status = CloudHandler().uploadgoogledrive(self.packname)
 
 		if (self.uploadconfig['location'] == 'icloud'):
 			email = self.uploadconfig['appleid']

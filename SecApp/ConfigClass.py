@@ -35,6 +35,7 @@ class AppConfig:
 
 
 		self.configFileName='configs/seccuConfig.ini'
+		self.googleyaml = 'configs/gdrive.yaml'
 
 	def mapget(self,section):
 		Config = ConfigParser.ConfigParser()

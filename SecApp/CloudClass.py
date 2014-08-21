@@ -1,7 +1,9 @@
 from SecApp.FileHandlerClass import FileHandler
 from SecApp.ConfigClass import AppConfig
 
-
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+import os
 class CloudHandler:
 	'''
 
@@ -20,46 +22,55 @@ class CloudHandler:
 
 
 
+	def getgooglefileid(self,title):
+
+		print os.getcwd()
+		self.ga = GoogleAuth(self.DBConfig.googleyaml)
+		self.ga.LocalWebserverAuth()
+		drive = GoogleDrive(self.ga)
+		flist = drive.ListFile({'q': "title = '%s' and trashed = false"%title})
+		files = flist.GetList() 
+		if len(files)==0:
+			return False
+		else:
+			return files[0]['id']
 
 
+	def simpleUploadGoogle(self,filename): #test_01_Files_Insert
+		drive = GoogleDrive(self.ga)
+		#f = drive.CreateFile({'fluidSecurity': parent_id})
+		file1 = drive.CreateFile()
+		file1.SetContentFile(filename) # Read local file
+		file1.Upload() # Upload it
+		
+	
 
-#	def simpleUploadGoogle(filename): #test_01_Files_Insert
-#		drive = GoogleDrive(ga)
-#		#f = drive.CreateFile({'fluidSecurity': parent_id})
-#		file1 = drive.CreateFile()
-#		file1.SetContentFile(filename) # Read local file
-#		file1.Upload() # Upload it
-#		
-#	
-#		writeConfigSectionMap('cloudinfo','databasecloudid',file1['id'])
-#		return True
-#	##save file ID to config
-#	
-#	
-#	def simpleUpdateGoogle(filename):
-#		dbID=ConfigSectionMap('cloudinfo')['databasecloudid']
-#		
-#		drive = GoogleDrive(ga)
-#	
-#		file1=drive.CreateFile({'id': dbID}) #overwrite by ID
-#		file1['title'] = filename
-#		file1.FetchContent()
-#		file1.SetContentFile(filename)
-#		file1.Upload() 
-#		return True
-#		
-#	  
-#	
-#	def simpleDownloadGoogle(filename):
-#		DeleteOldFile(self.filename) #delete local version, not that safe
-#	
-#		drive = GoogleDrive(self.ga)
-#		file1 = drive.CreateFile()
-#		file1['title'] = filename
-#		file1.FetchContent()  # Force download and double check content
-#		return True
-#	
-#	
+		return True
+	##save file ID to config
+	
+	
+	def simpleUpdateGoogle(self,filename,dbID):
+		drive = GoogleDrive(self.ga)
+	
+		file1=drive.CreateFile({'id': dbID}) #overwrite by ID
+		file1['title'] = filename
+		file1.FetchContent()
+		file1.SetContentFile(filename)
+		file1.Upload() 
+		return True
+		
+	  
+	
+	def simpleDownloadGoogle(self,filename):
+		DeleteOldFile(self.filename) #delete local version, not that safe
+	
+		drive = GoogleDrive(self.ga)
+		file1 = drive.CreateFile()
+		file1['title'] = filename
+		file1.FetchContent()  # Force download and double check content
+		return True
+	
+	
 #	
 #	
 #	def ftpDown(filename,host,user,ftpass):
@@ -70,20 +81,6 @@ class CloudHandler:
 #		file.close()
 #		session.quit()
 #	
-#
-#	
-#	
-#	def readFTPConfig():
-#		try:
-#			host=ConfigSectionMap('cloudinfo')['ftphost']
-#			user=ConfigSectionMap('cloudinfo')['ftpuser']
-#			ftpSettings=dict(host=host,user=user)
-#		except KeyError: 
-#			return False
-#		else:	
-#			return str(ftpSettings)
-
-
 
 
 
@@ -115,8 +112,12 @@ class CloudHandler:
 			return False
 		return True
 
-	def uploadgoogledrive(self,filename,email,password):
-		
+	def uploadgoogledrive(self,filename):
+		googlefileid = self.getgooglefileid(filename)
+		if googlefileid == False:
+			self.simpleUploadGoogle(filename)
+		else:
+			self.simpleUpdateGoogle(filename,googlefileid)
 		return True
 
 	def uploadicloud(self,filename,email,password):

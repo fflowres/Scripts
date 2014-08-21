@@ -167,121 +167,124 @@ class SecuFrame: #in producion, key must be specified
 				#questionsData.remove('note')
 
 				for question in questionsData: #get question from list	
-					if (self.infoIndex[question]['multipoint']== "True"): # & (self.infoIndex[question]['aggregate']== "False"): #display all points
+
+					try:
+						if (self.infoIndex[question]['multipoint']== "True"): # & (self.infoIndex[question]['aggregate']== "False"): #display all points
+		
+		
+							multiP = curr[question].keys()
+							'''
+							in 'a'
+							['xxdate1xx','xxdate2xx']
+							'''
+							
+							for point in multiP: #points are dates
+								try:
+									tmp[question][point] = curr[question][point]
+								except KeyError:
+									tmp[question]={}
+									tmp[question][point] = curr[question][point]
 	
+								try:
+									self.dbdatemapped[point][question] = curr[question][point]
+								except KeyError: #avoid overwriting
+									self.dbdatemapped[point] = {}
+									self.dbdatemapped[point][question] = curr[question][point]			
 	
-						multiP = curr[question].keys()
-						'''
-						in 'a'
-						['xxdate1xx','xxdate2xx']
-						'''
 						
-						for point in multiP: #points are dates
+						if (self.infoIndex[question]['multipoint']== "True") & (self.infoIndex[question]['aggregate']== "True"): #display only one aggregate in it's own column
+	
+							'''
+							creates unique key for aggregate
+							'''
+							datelist = curr[question].keys() #gets all dates within the question 
+							datelist.sort()	 #ensure earliest to latest
+							aggregate_key_name = str(question)+"_aggregate"
+							tmp[aggregate_key_name]={}
+	
+	
+							try: #as intigers
+								tmp[aggregate_key_name][rowDate] = 0
+								aggregate_sum = 0
+								for point in datelist:
+									aggregate_sum += curr[question][point]
+							except TypeError: #process aggregate function as concatenated strings
+								tmp[aggregate_key_name][rowDate] = ""
+								aggregate_sum = ""
+								for point in datelist:
+									aggregate_sum += curr[question][point] + "\n"
+								
+	
+	
 							try:
-								tmp[question][point] = curr[question][point]
+								self.dbdatemapped[rowDate][aggregate_key_name] = aggregate_sum
+							except KeyError: 
+								self.dbdatemapped[rowDate] = {}
+								self.dbdatemapped[rowDate][aggregate_key_name] = aggregate_sum
+		
+							tmp[aggregate_key_name] = {}
+							tmp[aggregate_key_name][rowDate] = aggregate_sum # replaces with single 
+	
+	
+	
+						if ((self.infoIndex[question]['multipoint']== "False") & (self.infoIndex[question]['aggregate']== "False")) | (self.infoIndex[question]['typ']== "note"): #display only one
+							'''
+							Puts last entry under rowdate 
+							'''
+	
+	
+	
+							''' 
+							NOTE HANDLING
+							in future this should select the most positive note based on sentiment analysis
+	
+							- For now it will select the last note typed in
+							'''
+	
+	
+							datelist = curr[question].keys() #gets all dates within the question
+		
+							pointKey = self.getLastDate(datelist) #selects most recent date from list (keys)
+							try:
+								tmp[question][rowDate] = curr[question][pointKey] # replaces with single, most recent, point only
 							except KeyError:
 								tmp[question]={}
-								tmp[question][point] = curr[question][point]
-
+								tmp[question][rowDate] = curr[question][pointKey] # replaces with single, most recent, point only
 							try:
-								self.dbdatemapped[point][question] = curr[question][point]
-							except KeyError: #avoid overwriting
-								self.dbdatemapped[point] = {}
-								self.dbdatemapped[point][question] = curr[question][point]			
-
-					
-					if (self.infoIndex[question]['multipoint']== "True") & (self.infoIndex[question]['aggregate']== "True"): #display only one aggregate in it's own column
-
-						'''
-						creates unique key for aggregate
-						'''
-						datelist = curr[question].keys() #gets all dates within the question 
-						datelist.sort()	 #ensure earliest to latest
-						aggregate_key_name = str(question)+"_aggregate"
-						tmp[aggregate_key_name]={}
-
-
-						try: #as intigers
-							tmp[aggregate_key_name][rowDate] = 0
-							aggregate_sum = 0
-							for point in datelist:
-								aggregate_sum += curr[question][point]
-						except TypeError: #process aggregate function as concatenated strings
-							tmp[aggregate_key_name][rowDate] = ""
-							aggregate_sum = ""
-							for point in datelist:
-								aggregate_sum += curr[question][point] + "\n"
-							
-
-
-						try:
-							self.dbdatemapped[rowDate][aggregate_key_name] = aggregate_sum
-						except KeyError: 
-							self.dbdatemapped[rowDate] = {}
-							self.dbdatemapped[rowDate][aggregate_key_name] = aggregate_sum
+								self.dbdatemapped[rowDate][question]  = curr[question][pointKey]
+							except KeyError:
+								self.dbdatemapped[rowDate] = {}
+								self.dbdatemapped[rowDate][question]  = curr[question][pointKey]
 	
-						tmp[aggregate_key_name] = {}
-						tmp[aggregate_key_name][rowDate] = aggregate_sum # replaces with single 
-
-
-
-					if ((self.infoIndex[question]['multipoint']== "False") & (self.infoIndex[question]['aggregate']== "False")) | (self.infoIndex[question]['typ']== "note"): #display only one
-						'''
-						Puts last entry under rowdate 
-						'''
-
-
-
-						''' 
-						NOTE HANDLING
-						in future this should select the most positive note based on sentiment analysis
-
-						- For now it will select the last note typed in
-						'''
-
-
-						datelist = curr[question].keys() #gets all dates within the question
 	
-						pointKey = self.getLastDate(datelist) #selects most recent date from list (keys)
-						try:
-							tmp[question][rowDate] = curr[question][pointKey] # replaces with single, most recent, point only
-						except KeyError:
+		
+						if (self.infoIndex[question]['multipoint']== "False") & (self.infoIndex[question]['aggregate']== "True"): #display only one aggregate in it's own column
+							datelist = curr[question].keys() #gets all dates within the question 
+							datelist.sort()	 #ensure earliest to latest
+		
 							tmp[question]={}
-							tmp[question][rowDate] = curr[question][pointKey] # replaces with single, most recent, point only
-						try:
-							self.dbdatemapped[rowDate][question]  = curr[question][pointKey]
-						except KeyError:
-							self.dbdatemapped[rowDate] = {}
-							self.dbdatemapped[rowDate][question]  = curr[question][pointKey]
-
-
-	
-					if (self.infoIndex[question]['multipoint']== "False") & (self.infoIndex[question]['aggregate']== "True"): #display only one aggregate in it's own column
-						datelist = curr[question].keys() #gets all dates within the question 
-						datelist.sort()	 #ensure earliest to latest
-	
-						tmp[question]={}
-						
-						try: #as intigers
-							tmp[question][rowDate] = 0
-							aggregate_sum = 0
-							for point in datelist:
-								aggregate_sum += curr[question][point]
-						except TypeError: #process aggregate function as concatenated strings
-							tmp[question][rowDate] = ""
-							aggregate_sum = ""
-							for point in datelist:
-								aggregate_sum += curr[question][point] + "\n"
-	
-						#output	
-						tmp[question][rowDate] = aggregate_sum
-						#remapping is additive
-						try:
-							self.dbdatemapped[rowDate][question]  = aggregate_sum
-						except KeyError:
-							self.dbdatemapped[rowDate] = {}
-							self.dbdatemapped[rowDate][question]  = aggregate_sum
-
+							
+							try: #as intigers
+								tmp[question][rowDate] = 0
+								aggregate_sum = 0
+								for point in datelist:
+									aggregate_sum += curr[question][point]
+							except TypeError: #process aggregate function as concatenated strings
+								tmp[question][rowDate] = ""
+								aggregate_sum = ""
+								for point in datelist:
+									aggregate_sum += curr[question][point] + "\n"
+		
+							#output	
+							tmp[question][rowDate] = aggregate_sum
+							#remapping is additive
+							try:
+								self.dbdatemapped[rowDate][question]  = aggregate_sum
+							except KeyError:
+								self.dbdatemapped[rowDate] = {}
+								self.dbdatemapped[rowDate][question]  = aggregate_sum
+					except KeyError:
+						continue
 
 				self.dbfiltered.append(tmp)
 
@@ -327,6 +330,36 @@ class SecuFrame: #in producion, key must be specified
 			cleankey = question.replace('_aggregate', '')
 			self.responseFrame[cleankey] = tmp[question]
 		
+		return self
+
+	def orderedmap(self):
+		import datetime as dt
+		self.processFrameList = []
+		self.processFrameDict = {}
+
+		graphpoints = self.dbdatemapped.keys()
+		graphdates = []
+
+		
+		for date in graphpoints:
+			try:
+				graphdates.append(dt.datetime.strptime(date,"%Y-%m-%d %H:%M:%S.%f"))
+			except ValueError:
+				graphdates.append(dt.datetime.strptime(date,"%Y-%m-%d %H:%M:%S"))
+
+		sortkeydto, pointerdts = zip(*sorted(zip(graphdates, graphpoints)))
+
+		for i in xrange(0,len(pointerdts)): # want {date: xxxISOxxx , a:x ,b:x ,note:x}
+
+			tmpRow = {}
+			tmpRow[sortkeydto[i]] = {}
+			self.processFrameDict[sortkeydto[i]] = {}
+
+			for question in self.dbdatemapped[pointerdts[i]]:
+				tmpRow[sortkeydto[i]][question] = self.dbdatemapped[pointerdts[i]][question]
+				self.processFrameDict[sortkeydto[i]][question] = self.dbdatemapped[pointerdts[i]][question]
+				
+			self.processFrameList.append(tmpRow)
 		return self
 
 
