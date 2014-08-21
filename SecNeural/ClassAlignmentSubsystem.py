@@ -82,7 +82,6 @@ class DataNormalization:
                     self.firstdate = self.data[i].keys()[0]
                     
                 self.lasttdate = self.data[i].keys()[0] # will be caught and updated untill the last valid entry
-                
                 #print 'key: ' + str(self.keysearch)+' found at: ' +str(i)
                 
             except KeyError:
@@ -95,8 +94,13 @@ class DataNormalization:
         #iterate from start every
         #get times it can be divided
         try:
+
             curtimedelta = self.firstrefdate_dto + self.normalizationConst
+            print curtimedelta
+            print self.lasttdate
+
             while (curtimedelta <= self.lasttdate):
+
                 nX = time.mktime(curtimedelta.timetuple())
                 nX_dto = curtimedelta
                 nY = self.Ynormal_interpolation[nX]
@@ -111,9 +115,10 @@ class DataNormalization:
                 self.normalized_dto.append((nX_dto,nY))
                 self.normalized_dtokey_dict[nX_dto] = nY
                 
-                
+
                 self.lastrefdate_dto = curtimedelta #continue updating untill last date, checked this round
                 curtimedelta = curtimedelta + self.normalizationConst # checked next round
+
                 
         except Exception as e:
             print e
