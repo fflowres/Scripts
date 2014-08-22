@@ -5,8 +5,8 @@ def dtanh(y):
     return 1.0-y*y
 
 class searchnet:
-    def __init__(self):
-      self.con=sqlite.connect(':memory:')
+    def __init__(self,dbname):
+      self.con=sqlite.connect(dbname)
   
     def __del__(self):
       self.con.close()
