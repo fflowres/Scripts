@@ -1,5 +1,5 @@
 from math import tanh
-from pysqlite2 import dbapi2 as sqlite
+import sqlite3 as sqlite
 
 def dtanh(y):
     return 1.0-y*y

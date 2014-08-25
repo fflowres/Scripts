@@ -318,6 +318,66 @@ class SecuFrame: #in producion, key must be specified
 			 
 		#map accordingly with date to iso format
 
+
+
+	def Agraph(self,neuroOutput):
+		import datetime as dt
+		self.neuroOutput = neuroOutput # [(dto,dto),(dto,dto),,,,]
+		self.AgraphFrame = []
+
+		graphpoints = self.dbdatemapped.keys()
+		graphdates = []
+
+		self.last_date = None
+		self.curr_date = None
+
+		self.neuro_scan_count = 0 
+		self.neuro_highlight_complete = False
+
+		for date in graphpoints:
+			try:
+				graphdates.append(dt.datetime.strptime(date,"%Y-%m-%d %H:%M:%S.%f"))
+			except ValueError:
+				graphdates.append(dt.datetime.strptime(date,"%Y-%m-%d %H:%M:%S"))
+
+		sortkeydto, pointerdts = zip(*sorted(zip(graphdates, graphpoints)))
+
+		for i in xrange(0,len(pointerdts)): # want {date: xxxISOxxx , a:x ,b:x ,note:x}
+			tmpRow = {}
+			# set to white /  transparent first
+			self.curr_date = sortkeydto[i]
+
+			if (self.neuro_highlight_complete == False):
+				tmpScanPos = divmod(self.neuro_scan_count,2) # divisor answer, remainder
+				#print "tmpScanPos: " +str(tmpScanPos) + " self.neuro_scan_count:  " + str(self.neuro_scan_count)
+				tmpNeuroDate = self.neuroOutput[tmpScanPos[0]][tmpScanPos[1]]
+
+				if ( self.last_date == None): tmpRow["lineColor"] = "#FFFFFF"
+				elif (self.curr_date == tmpNeuroDate):
+					if (tmpScanPos[1] == 0 ): tmpRow["lineColor"] = "#CC0000" #if start of range
+					if (tmpScanPos[1] == 1 ): tmpRow["lineColor"] = "#FFFFFF" # if end of range
+					self.neuro_scan_count +=1
+
+				elif(self.last_date < tmpNeuroDate < self.curr_date):
+					if (tmpScanPos[1] == 0 ): tmpRow["lineColor"] = "#CC0000" #if start of range
+					if (tmpScanPos[1] == 1 ): tmpRow["lineColor"] = "#FFFFFF" # if end of range
+					self.neuro_scan_count +=1
+
+				if ((tmpScanPos[0] + tmpScanPos[0]) == len(neuroOutput)): self.neuro_highlight_complete = True #checks if this should be the last iteration
+
+				
+
+			
+			tmpRow['date'] = sortkeydto[i].isoformat() + "Z"
+			for question in self.dbdatemapped[pointerdts[i]]:
+				tmpRow[question] = self.dbdatemapped[pointerdts[i]][question]
+				
+			self.AgraphFrame.append(tmpRow)
+			self.last_date = sortkeydto[i]
+			 
+		#map accordingly with date to iso format
+
+
 	def dayresponse(self):
 		self.responseFrame = {}
 		try:

@@ -56,6 +56,12 @@ class Sync:
 		if (self.uploadconfig['action'] == 'upload'):
 			status = self.upload()
 
+		if (self.uploadconfig['action'] == 'authenticate'):
+			status = self.authenticate()
+
+		if (self.uploadconfig['action'] == 'authenticate'):
+			status = self.authorize()
+
 		if (self.uploadconfig['action'] == 'save'):
 			status = self.setbackuplocation()
 
@@ -117,6 +123,31 @@ class Sync:
 		except KeyError: 
 			return False
 
+	def authenticate(self):
+		socket.RAND_add(self.ssl_seed().randomString, 75.0) # pre-seed generator
+		if (self.uploadconfig['location'] == 'dropbox'):
+
+			url = CloudHandler().authenticatedropbox()
+			print "============= authenticate dropbox" + str(url)
+			return url
+		if (self.uploadconfig['location'] == 'googledrive'):
+
+			url = CloudHandler().authenticategoogle()
+			print "============= authenticate google" + str(url)
+			if (url != True):
+				return url
+			else:
+				return True # then upload
+
+	def authorize(self):
+		if (self.uploadconfig['location'] == 'googledrive'):
+			socket.RAND_add(self.ssl_seed().randomString, 75.0) # pre-seed generator
+			authcode = self.uploadconfig['authcode']
+			status = CloudHandler().googleauthorize(authcode)
+			if (status): # True
+				return True
+			else:
+				return False
 
 
 	def upload(self):
@@ -127,7 +158,6 @@ class Sync:
 		self.FH.genpack(self.key) #packadge database
 
 		self.packname = self.FH.finalpackname #from config
-
 
 
 		if (self.uploadconfig['location'] == 'ftp'):
@@ -153,12 +183,11 @@ class Sync:
 			status = uploadicloud(self.packname, email, pasword)
 
 		if (self.uploadconfig['location'] == 'dropbox'):
-			email = self.uploadconfig['dropboxid']
-			password = self.uploadconfig['password']
+			authcode = self.uploadconfig['authcode']
 
 			self.DBConfig.putmap('cloudinfo','location','dropbox')
-			self.DBConfig.putmap('cloudinfo','dropboxid',email)
-			status = CloudHandler().uploaddropbox(self.packname, email, password)
+			# self.DBConfig.putmap('cloudinfo','dropboxid',authcode)
+			status = CloudHandler().uploaddropbox(self.packname, authcode)
 
 		if (self.uploadconfig['location'] == 'skydrive'):
 			email = self.uploadconfig['livemail']

@@ -1,0 +1,4 @@
+#!C:\Python27\python.exe
+# EASY-INSTALL-SCRIPT: 'Theano==0.6.0','theano-nose'
+__requires__ = 'Theano==0.6.0'
+__import__('pkg_resources').run_script('Theano==0.6.0', 'theano-nose')

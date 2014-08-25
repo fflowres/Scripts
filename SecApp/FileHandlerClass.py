@@ -209,7 +209,7 @@ class FileHandler:
 		#return False
 
 		#if secure
-		return True
+		return False
 
 
 

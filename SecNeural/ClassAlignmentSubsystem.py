@@ -96,8 +96,8 @@ class DataNormalization:
         try:
 
             curtimedelta = self.firstrefdate_dto + self.normalizationConst
-            print curtimedelta
-            print self.lasttdate
+            #print curtimedelta
+            #print self.lasttdate
 
             while (curtimedelta <= self.lasttdate):
 
